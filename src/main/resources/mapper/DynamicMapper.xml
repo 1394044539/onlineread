@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wpy.mapper.DynamicMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wpy.entity.Dynamic">
+        <id column="id" property="id" />
+        <result column="dynamic_title" property="dynamicTitle" />
+        <result column="dynamic_content" property="dynamicContent" />
+        <result column="user_id" property="userId" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="is_read" property="isRead" />
+        <result column="dynamic_type" property="dynamicType" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, dynamic_title, dynamic_content, user_id, create_by, create_time, is_read, dynamic_type
+    </sql>
+    <select id="selectDynamicPage" resultType="com.wpy.entity.Dynamic">
+        SELECT d.id AS id,d.dynamic_title AS dynamicTitle,d.dynamic_content AS dynamicContent,d.user_id AS userId,
+        d.create_by AS createBy,d.create_time AS createTime,d.is_read AS isRead,d.dynamic_type AS dynamicType,
+        su.user_name AS userName,su.account_name AS accountName
+        FROM dynamic d
+        LEFT JOIN sys_user su on d.user_id = su.id
+        WHERE 1=1
+        <if test="dto.userId != null and dto.userId != ''">
+            and d.user_id = #{dto.userId}
+        </if>
+        <if test="dto.dynamicTitle !=null and dto.dynamicTitle!= ''">
+            and d.dynamic_title like "%"#{dto.dynamicTitle}"%"
+        </if>
+        <if test="dto.isRead !=null">
+            and d.is_read = #{dto.isRead}
+        </if>
+        <if test="dto.dynamicType != null and dto.dynamicType != ''">
+            and d.dynamic_type = #{dto.dynamicType}
+        </if>
+        <if test="dto.username !=null and dto.username !=''">
+            and su.user_name like "%"#{dto.username}"%"
+        </if>
+        <if test="dto.accountName !=null and dto.accountName !=''">
+            and su.account_name like "%"#{dto.accountName}"%"
+        </if>
+        <if test="dto.startTime !=null">
+            and d.create_time &gt;= #{dto.startTime}
+        </if>
+        <if test="dto.endTime !=null">
+            and d.create_time &lt; date_add(#{dto.endTime},interval 1 day)
+        </if>
+        <if test="dto.asc !=null and dto.asc">
+            order by d.create_time ASC
+        </if>
+        <if test="dto.asc !=null and !dto.asc">
+            order by d.create_time DESC
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wpy.mapper.CatalogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wpy.entity.Catalog">
+        <id column="id" property="id" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="user_id" property="userId" />
+        <result column="parent_id" property="parentId" />
+        <result column="catalog_name" property="catalogName" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, create_by, create_time, update_by, update_time, user_id, parent_id, catalog_name
+    </sql>
+    <update id="updateCatalogIdNull">
+        update catalog as c
+        set c.update_time = #{catalogDto.updateTime},
+        c.update_by=#{catalogDto.updateBy},
+        c.parent_id =
+        <if test="catalogDto.targetId == null or catalogDto.targetId == ''">
+            null
+        </if>
+        <if test="catalogDto.targetId != null and catalogDto.targetId != ''">
+            #{catalogDto.targetId}
+        </if>
+        where c.id=#{catalogDto.choseId}
+    </update>
+
+</mapper>

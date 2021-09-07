@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wpy.mapper.ReadHistoryMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wpy.entity.ReadHistory">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="ip" property="ip" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="novel_id" property="novelId" />
+        <result column="last_chapter_id" property="lastChapterId" />
+        <result column="user_type" property="userType" />
+        <result column="read_position" property="readPosition" />
+        <result column="read_all_position" property="readAllPosition"/>
+    </resultMap>
+
+    <resultMap id="queryHistoryInfoMap" type="com.wpy.entity.ReadHistory">
+        <id column="id" property="id" />
+        <result column="novelId" property="novelId" />
+        <result column="userId" property="userId" />
+        <result column="ip" property="ip" />
+        <result column="updateTime" property="updateTime" />
+        <result column="lastChapterId" property="lastChapterId" />
+        <result column="userType" property="userType" />
+        <result column="readPosition" property="readPosition" />
+        <result column="readAllPosition" property="readAllPosition"/>
+        <result column="bookMarkName" property="bookMarkName" />
+        <result column="createTime" property="createTime" />
+        <result column="username" property="username" />
+        <association property="novel" javaType="com.wpy.entity.Novel">
+            <id column="nid" property="id" />
+            <result column="novelTitle" property="novelTitle" />
+            <result column="novelImg" property="novelImg" />
+            <result column="novelAuthor" property="novelAuthor" />
+            <result column="novelStatus" property="novelStatus" />
+            <result column="novelUploadType" property="novelUploadType" />
+        </association>
+        <association property="novelChapter" javaType="com.wpy.entity.NovelChapter">
+            <id column="ncId" property="id" />
+            <result column="chapterName" property="chapterName" />
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, ip, create_time, update_time, novel_id, last_chapter_id, user_type
+    </sql>
+    <select id="queryHistory" resultType="com.wpy.entity.ReadHistory">
+        select rh.id AS id,rh.update_time AS update_Time,rh.novel_id as novelId,
+        rh.user_id AS userId,rh.ip AS ip,rh.user_type AS userType,rh.last_chapter_id AS lastChapterId,rh.read_position AS readPosition,rh.read_all_position AS readAllPosition,
+        n.novel_title AS novelTitle,n.novel_img AS novelImg,n.novel_author AS novelAuthor,
+        from read_history as rh LEFT JOIN novel as n on rh.novel_id=n.id
+        where 1=1
+        <if test="type==0">
+            and rh.user_id = #{dto.userId}
+        </if>
+        <if test="type==1">
+            and rh.ip = #{dto.ip}
+            and (rh.user_id=null or rh.user_id='')
+        </if>
+    </select>
+
+    <select id="queryHistoryInfo" resultMap="queryHistoryInfoMap">
+        select rh.id AS id,rh.update_time AS updateTime,rh.user_id AS userId,rh.novel_id AS novelId,rh.ip AS ip,
+        rh.user_type AS userType,rh.last_chapter_id AS lastChapterId,rh.read_position AS readPosition,
+        rh.read_all_position AS readAllPosition,rh.book_mark_name AS bookMarkName,rh.create_time AS createTime,
+        n.id AS nid,n.novel_title AS novelTitle,n.novel_img AS novelImg,n.novel_author AS novelAuthor,
+        n.novel_status as novelStatus,n.novel_upload_type as novelUploadType,
+        nc.id AS ncId,nc.chapter_name AS chapterName,
+        su.user_name AS username
+        from read_history as rh
+        LEFT JOIN novel as n on rh.novel_id=n.id
+        LEFT JOIN novel_chapter as nc on nc.id=rh.last_chapter_id
+        LEFT JOIN sys_user as su on su.id = rh.user_id
+        where rh.type=#{dto.type}
+        and n.id is not null
+        <if test="dto.type==0">
+            <if test="dto.userType==0">
+                and (rh.user_id = #{dto.userId} or rh.ip = #{dto.ip} )
+            </if>
+            <if test="dto.userType==1">
+                and rh.ip = #{dto.ip}
+                and n.novel_upload_type = 0
+            </if>
+        </if>
+        <if test="dto.type==1 and dto.userId != null and dto.userId != ''">
+            and rh.user_id = #{dto.userId}
+        </if>
+        <if test="dto.novelTitle!=null and dto.novelTitle != ''">
+            and n.novel_title like "%"#{dto.novelTitle}"%"
+        </if>
+        <if test="dto.markName!=null and dto.markName!=''">
+            and rh.book_mark_name like "%"#{dto.markName}"%"
+        </if>
+        <if test="dto.username != null and dto.username !=''">
+            and su.user_name like "%"#{dto.username}"%"
+        </if>
+        <if test="dto.ip !=null and dto.ip !=''">
+            and rh.ip = #{dto.ip}
+        </if>
+        <if test="dto.startTime !=null">
+            and rh.update_time &gt;= #{dto.startTime}
+        </if>
+        <if test="dto.endTime !=null">
+            and rh.update_time &lt; DATE_ADD(#{dto.endTime},INTERVAL 1 DAY)
+        </if>
+        order by rh.update_time desc
+    </select>
+
+</mapper>

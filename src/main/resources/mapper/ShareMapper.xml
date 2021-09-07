@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wpy.mapper.ShareMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wpy.entity.Share">
+        <id column="id" property="id" />
+        <result column="share_name" property="shareName" />
+        <result column="create_by" property="createBy" />
+        <result column="share_user" property="shareUser" />
+        <result column="share_pwd" property="sharePwd" />
+        <result column="share_path" property="sharePath" />
+        <result column="invalid_time" property="invalidTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="share_type" property="shareType" />
+        <result column="share_status" property="shareStatus" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, share_name, create_by, share_user, share_path, invalid_time, create_time, update_by, update_time, share_type, share_status
+    </sql>
+
+</mapper>

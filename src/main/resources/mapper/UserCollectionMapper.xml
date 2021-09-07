@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wpy.mapper.UserCollectionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wpy.entity.UserCollection">
+        <result column="id" property="id" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="novel_id" property="novelId" />
+        <result column="catalog_id" property="catalogId" />
+        <result column="user_id" property="userId" />
+        <result column="collect_channel" property="collectChannel"/>
+    </resultMap>
+
+    <resultMap id="NovelMap" type="com.wpy.entity.UserCollection">
+        <result column="uid" property="id" />
+        <result column="createBy" property="createBy" />
+        <result column="createTime" property="createTime" />
+        <result column="novelId" property="novelId" />
+        <result column="catalogId" property="catalogId" />
+        <result column="userId" property="userId" />
+        <result column="username" property="username" />
+        <result column="userCollect" property="collectChannel"/>
+        <result column="catalogName" property="catalogName" />
+        <association property="novel" javaType="com.wpy.entity.Novel">
+            <id column="nid" property="id"/>
+            <result column="author" property="novelAuthor"/>
+            <result column="img" property="novelImg"/>
+            <result column="title" property="novelTitle"/>
+            <result column="novelStatus" property="novelStatus" />
+            <result column="novelUploadType" property="novelUploadType" />
+        </association>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, create_by, create_time, novel_id, catalog_id, user_id
+    </sql>
+    <update id="updateCatalogIdNull">
+        update user_collection as uc
+        set
+        uc.catalog_id =
+        <if test="catalogDto.targetId == null or catalogDto.targetId == ''">
+            null
+        </if>
+        <if test="catalogDto.targetId != null and catalogDto.targetId != ''">
+            #{catalogDto.targetId}
+        </if>
+        where uc.id=#{catalogDto.choseId}
+    </update>
+    <select id="queryPersonCollect" resultMap="NovelMap">
+        select uc.id as uid,uc.create_by as createBy,uc.create_time as createTime,uc.collect_channel as userCollect,
+        uc.catalog_id as catalogId,uc.user_id as userId,uc.novel_id as novelId,
+        n.id as nid,n.novel_author as author,n.novel_img as img,n.novel_title as title,
+        c.catalog_name as catalogName,
+        su.user_name as username
+        from user_collection as uc
+        LEFT JOIN novel as n on uc.novel_id= n.id
+        LEFT JOIN catalog as c on uc.catalog_id = c.id
+        LEFT JOIN sys_user as su on su.id = uc.user_id
+        where 1=1
+        <if test="collectionDto.collectChannel != null and collectionDto.collectChannel != ''">
+            and uc.collect_channel=#{collectionDto.collectChannel}
+        </if>
+        <if test="collectionDto.novelTitle != null and collectionDto.novelTitle!= ''">
+            and n.novel_title like "%"#{collectionDto.novelTitle}"%"
+        </if>
+        <if test="collectionDto.username != null and collectionDto.username!= ''">
+            and su.user_name like "%"#{collectionDto.username}"%"
+        </if>
+        <if test="collectionDto.startTime !=null">
+            and n.create_time &gt;= #{collectionDto.startTime}
+        </if>
+        <if test="collectionDto.endTime !=null">
+            and n.create_time &lt; DATE_ADD(#{collectionDto.endTime},INTERVAL 1 DAY)
+        </if>
+    </select>
+    <select id="queryPersonCollectList" resultMap="NovelMap">
+        select uc.id as uid,uc.create_by as createBy,uc.create_time as createTime,uc.collect_channel as userCollect,
+        uc.catalog_id as catalogId,uc.user_id as userId,uc.novel_id as novelId,
+        n.id as nid,n.novel_author as author,n.novel_img as img,n.novel_title as title,n.novel_status as novelStatus,
+        n.novel_upload_type as novelUploadType
+        from user_collection as uc LEFT JOIN novel as n on uc.novel_id= n.id
+        where uc.user_id=#{userid}
+        <if test="pojo.collectChannel != null">
+            and uc.collect_channel=#{pojo.collectChannel}
+        </if>
+        <if test="pojo.parentId != null and pojo.parentId != ''">
+            and uc.catalog_id=#{pojo.parentId}
+        </if>
+        <if test="pojo.parentId == null or pojo.parentId == ''">
+            and uc.catalog_id is null
+        </if>
+        <if test="pojo.name != null and pojo.name != ''">
+            and n.novel_title like "%"#{pojo.name}"%"
+        </if>
+    </select>
+    <select id="selectFileInfoByCatalogId" resultType="com.wpy.pojo.UserCollectFileInfoPojo">
+        select n.novel_title AS novelTitle,
+        rf.file_path AS filePath,rf.file_size AS fileSize,rf.file_type AS fileType,rf.file_name AS fileName
+        from user_collection as uc
+        left JOIN novel as n on uc.novel_id = n.id
+        left JOIN read_file as rf on rf.id= n.file_id
+        where
+        <if test="catalogId == null or catalogId == ''">
+            uc.catalog_id is null
+        </if>
+        <if test="catalogId != null and catalogId != ''">
+            uc.catalog_id = #{catalogId}
+        </if>
+        and uc.user_id = #{userId}
+    </select>
+
+</mapper>

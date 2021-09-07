@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wpy.mapper.NovelMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wpy.entity.Novel">
+        <id column="id" property="id" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="file_id" property="fileId" />
+        <result column="novel_total" property="novelTotal" />
+        <result column="novel_word_num" property="novelWordNum"/>
+        <result column="novel_title" property="novelTitle" />
+        <result column="novel_img" property="novelImg" />
+        <result column="novel_introduce" property="novelIntroduce" />
+        <result column="novel_hot" property="novelHot" />
+        <result column="novel_click" property="novelClick" />
+        <result column="novel_comment" property="novelComment" />
+        <result column="novel_collection" property="novelCollection" />
+        <result column="novel_share" property="novelShare" />
+        <result column="novel_status" property="novelStatus" />
+        <result column="novel_up" property="novelUp" />
+        <result column="novel_type" property="novelType" />
+        <result column="novel_author" property="novelAuthor" />
+        <result column="novel_public_date" property="novelPublicDate" />
+        <result column="novel_upload_type" property="novelUploadType"/>
+        <result column="upload_user_id" property="uploadUserId"/>
+        <result column="error_msg" property="errorMsg" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, create_by, create_time, update_by, update_time, file_id, novel_total, novel_title, novel_img, novel_introduce, novel_hot, novel_click, novel_comment, novel_up, novel_type, novel_author, novel_public_date, novel_upload_type
+    </sql>
+    <select id="selectNovelList" resultType="com.wpy.entity.Novel">
+        SELECT
+            n.*,
+            cnum.num AS chapterNum,
+            su.user_name AS uploadUsername,
+            su.account_name AS uploadUser,
+            su.role_type AS roleType
+            <if test="dto.uploadUserId !=null and dto.uploadUserId != ''">
+                ,(CASE nc.id
+                WHEN ISNULL(nc.id) THEN 0 ELSE 1 END) AS isCollection
+            </if>
+        FROM novel n
+        LEFT JOIN ( SELECT nc.novel_id, COUNT( 1 ) num FROM novel_chapter nc GROUP BY nc.novel_id ) cnum ON cnum.novel_id = n.id
+        LEFT JOIN sys_user su on su.id = n.upload_user_id
+        <if test="dto.uploadUserId !=null and dto.uploadUserId != ''">
+            LEFT JOIN user_collection nc on n.id = nc.novel_id and user_id = #{dto.uploadUserId}
+        </if>
+        WHERE 1=1
+        <if test="dto.novelTitle !=null and dto.novelTitle !=''">
+            and n.novel_title like "%"#{dto.novelTitle}"%"
+        </if>
+        <if test="dto.novelAuthor !=null and dto.novelAuthor !=''">
+            and n.novel_author like "%"#{dto.novelAuthor}"%"
+        </if>
+        <if test="dto.novelStatus !=null and dto.novelStatus !=''">
+            and n.novel_status = #{dto.novelStatus}
+        </if>
+        <if test="dto.pageType != null and dto.pageType == 0">
+            and (n.novel_upload_type = 0 and n.novel_status != 4)
+        </if>
+        <if test="dto.novelUploadType != null">
+            and n.novel_upload_type = #{dto.novelUploadType}
+        </if>
+        <if test="dto.pageType != null and dto.pageType == 1">
+            and n.upload_user_id = #{dto.uploadUserId}
+        </if>
+        <if test="dto.createBy != null and dto.createBy !='' ">
+            and su.user_name like "%"#{dto.createBy}"%"
+        </if>
+        <if test="dto.startTime !=null">
+            and n.create_time &gt;= #{dto.startTime}
+        </if>
+        <if test="dto.endTime !=null">
+            and n.create_time &lt; DATE_ADD(#{dto.endTime},INTERVAL 1 DAY)
+        </if>
+        <if test="dto.novelTypes != null and dto.novelTypes.size()>0">
+            <foreach collection="dto.novelTypes" open="and (" close=")" separator="or" item="type">
+                find_in_set(#{type},novel_type)
+            </foreach>
+        </if>
+        <choose>
+            <when test="dto.sortType==0">
+                <if test="dto.asc">
+                    order by novel_hot ASC
+                </if>
+                <if test="!dto.asc">
+                    order by novel_hot DESC
+                </if>
+            </when>
+            <when test="dto.sortType==1">
+                <if test="dto.asc">
+                    order by update_time ASC
+                </if>
+                <if test="!dto.asc">
+                    order by update_time DESC
+                </if>
+            </when>
+            <otherwise>
+                order by update_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

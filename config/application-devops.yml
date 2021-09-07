@@ -1,0 +1,63 @@
+spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100000MB
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/onlineread?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+    #    password: iWPY9962
+    timeout: 6000 # 超时时常 毫秒
+    jedis:
+      pool:
+        max-active: 1000
+        max-wait: -1
+        max-idle: 10
+        min-idle: 5
+server:
+  port: 8092
+  servlet:
+    context-path:
+    encoding:
+      force: true
+      charset: UTF-8
+      enabled: true
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.wpy.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %clr(%-40.40logger.%13.13M){cyan} %clr(%3.3L) : %msg%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %clr(%-40.40logger.%13.13M){cyan} %clr(%3.3L) :{faint} %msg%n'
+    rolling-file-name: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
+  level:
+    root: info
+  file:
+    name: logger/mylog.log
+
+jwt:
+  expire-time: 7*24*3600*1000
+
+zhen-zi-message:
+  url: https://sms_developer.zhenzikj.com
+  app-id: 104208
+  app-secret: 9c2dd645-a754-4d7d-a6fd-a7e3fbe2572a
+upload:
+  img:
+    rootpath: E:/bookData/img
+    novelpath: novel
+    photopath: photo
+  file:
+    rootpath: E:/bookData/file

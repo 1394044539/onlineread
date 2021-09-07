@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wpy.mapper.NovelChapterMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.wpy.entity.NovelChapter">
+        <id column="id" property="id" />
+        <result column="create_by" property="createBy" />
+        <result column="create_time" property="createTime" />
+        <result column="update_by" property="updateBy" />
+        <result column="update_time" property="updateTime" />
+        <result column="novel_id" property="novelId" />
+        <result column="chapter_name" property="chapterName" />
+        <result column="chapter_line" property="chapterLine" />
+        <result column="chapter_total" property="chapterTotal" />
+        <result column="chapter_order" property="chapterOrder" />
+        <result column="chapter_href" property="chapterHref" />
+        <result column="parent_id" property="parentId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, create_by, create_time, update_by, update_time, novel_id, chapter_name, chapter_line, chapter_total, chapter_order
+    </sql>
+    <select id="getChapterContext" resultType="com.wpy.pojo.NovelChapterPojo">
+        select nc.chapter_line as chapterLine,nc.chapter_total as chapterTotal,nc.chapter_order as chapterOrder,nc.novel_id as novelId,
+        rf.file_path as filePath,nc.chapter_name as chapterName,n.novel_title as novelTitle,nc.chapter_href as chapterHref
+        from novel_chapter as nc
+        LEFT JOIN novel as n on nc.novel_id=n.id
+        LEFT JOIN read_file as rf on n.file_id=rf.id
+        where nc.id=#{novelChapterDto.chapterId}
+    </select>
+
+</mapper>
